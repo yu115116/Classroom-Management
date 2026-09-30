@@ -24,9 +24,8 @@
       --primary-border: #a7f3d0;
       --border-color: #e2ede7;
       --shadow-sm: 0 1px 3px rgba(16, 185, 129, 0.06);
-      --shadow-md: 0 4px 14px rgba(16, 185, 129, 0.08);
-      --topbar-bg: rgba(255, 255, 255, 0.94);
-      --phone-shell-bg: #1e293b;
+      --shadow-md: 0 4px 12px rgba(16, 185, 129, 0.08);
+      --topbar-bg: rgba(255, 255, 255, 0.92);
     }
 
     [data-theme="theme-pink"] {
@@ -41,9 +40,8 @@
       --primary-border: #fbcfe8;
       --border-color: #fae0e7;
       --shadow-sm: 0 1px 3px rgba(244, 114, 182, 0.08);
-      --shadow-md: 0 4px 14px rgba(244, 114, 182, 0.1);
-      --topbar-bg: rgba(255, 255, 255, 0.94);
-      --phone-shell-bg: #2d1c24;
+      --shadow-md: 0 4px 12px rgba(244, 114, 182, 0.1);
+      --topbar-bg: rgba(255, 255, 255, 0.92);
     }
 
     [data-theme="theme-blue"] {
@@ -58,9 +56,8 @@
       --primary-border: #bae6fd;
       --border-color: #dceaf7;
       --shadow-sm: 0 1px 3px rgba(56, 189, 248, 0.08);
-      --shadow-md: 0 4px 14px rgba(56, 189, 248, 0.1);
-      --topbar-bg: rgba(255, 255, 255, 0.94);
-      --phone-shell-bg: #142436;
+      --shadow-md: 0 4px 12px rgba(56, 189, 248, 0.1);
+      --topbar-bg: rgba(255, 255, 255, 0.92);
     }
 
     [data-theme="theme-orange"] {
@@ -75,9 +72,8 @@
       --primary-border: #fed7aa;
       --border-color: #fae6d4;
       --shadow-sm: 0 1px 3px rgba(251, 146, 60, 0.08);
-      --shadow-md: 0 4px 14px rgba(251, 146, 60, 0.1);
-      --topbar-bg: rgba(255, 255, 255, 0.94);
-      --phone-shell-bg: #2d2017;
+      --shadow-md: 0 4px 12px rgba(251, 146, 60, 0.1);
+      --topbar-bg: rgba(255, 255, 255, 0.92);
     }
 
     [data-theme="theme-purple"] {
@@ -92,9 +88,8 @@
       --primary-border: #e9d5ff;
       --border-color: #ede2f7;
       --shadow-sm: 0 1px 3px rgba(192, 132, 252, 0.08);
-      --shadow-md: 0 4px 14px rgba(192, 132, 252, 0.1);
-      --topbar-bg: rgba(255, 255, 255, 0.94);
-      --phone-shell-bg: #241b2e;
+      --shadow-md: 0 4px 12px rgba(192, 132, 252, 0.1);
+      --topbar-bg: rgba(255, 255, 255, 0.92);
     }
 
     [data-theme="theme-dark"] {
@@ -109,9 +104,8 @@
       --primary-border: #334155;
       --border-color: #2c3239;
       --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
-      --topbar-bg: rgba(29, 33, 38, 0.94);
-      --phone-shell-bg: #0b0f14;
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --topbar-bg: rgba(29, 33, 38, 0.92);
     }
 
     * {
@@ -133,7 +127,7 @@
     }
 
     /* ========================================================
-       左側側邊欄（無內部收合鈕，由頂部統一控制）
+       左側側邊欄（支援平滑收縮展開）
        ======================================================== */
     .sidebar {
       width: 320px;
@@ -161,18 +155,24 @@
     }
 
     .brand-section {
-      padding: 20px;
+      padding: 18px 20px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
       min-width: 320px;
     }
 
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .brand-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
       background: var(--primary-light);
       border: 1px solid var(--primary-border);
       color: var(--primary-hover);
@@ -186,7 +186,7 @@
       font-size: 1.05rem;
       font-weight: 700;
       letter-spacing: -0.01em;
-      line-height: 1.25;
+      line-height: 1.2;
     }
 
     .brand-text p {
@@ -195,12 +195,33 @@
       margin-top: 3px;
     }
 
+    /* 側欄內部收合按鈕 */
+    .btn-collapse-sidebar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-collapse-sidebar:hover {
+      background: var(--primary-light);
+      color: var(--primary-hover);
+      border-color: var(--primary-border);
+    }
+
     /* 功能網頁選單 */
     .nav-container {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 18px 14px;
+      padding: 16px 14px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -213,14 +234,14 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--text-muted);
-      padding: 2px 10px 8px;
+      padding: 4px 10px 6px;
     }
 
     .nav-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 13px 14px;
+      padding: 12px 14px;
       border-radius: 12px;
       text-decoration: none;
       color: var(--text-main);
@@ -306,6 +327,12 @@
       gap: 6px;
     }
 
+    .theme-header-hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+
     .theme-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -368,7 +395,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 18px;
+      padding: 0 20px;
       flex-shrink: 0;
       gap: 12px;
     }
@@ -380,7 +407,7 @@
       min-width: 0;
     }
 
-    /* 頂部選單切換按鈕 */
+    /* 頂部常駐收合/展開側欄按鈕 */
     .btn-toggle-sidebar {
       display: inline-flex;
       align-items: center;
@@ -414,7 +441,7 @@
     }
 
     .current-title {
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -442,7 +469,6 @@
       text-decoration: none;
       cursor: pointer;
       transition: all 0.15s ease;
-      user-select: none;
     }
 
     .btn-action:hover {
@@ -451,42 +477,12 @@
       color: var(--primary-hover);
     }
 
-    .btn-action.active-mode {
-      background: var(--primary);
-      color: #ffffff;
-      border-color: var(--primary);
-    }
-
-    .btn-action.active-mode:hover {
-      background: var(--primary-hover);
-      border-color: var(--primary-hover);
-      color: #ffffff;
-    }
-
-    /* 內容視窗包裝層 */
-    .iframe-stage {
+    .iframe-wrapper {
       flex: 1;
       width: 100%;
       height: 100%;
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: var(--bg-main);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* 預設：電腦版滿版 */
-    .iframe-container {
-      width: 100%;
-      height: 100%;
-      position: relative;
       background: var(--bg-sidebar);
-      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                  height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                  border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                  box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     iframe {
@@ -494,41 +490,9 @@
       height: 100%;
       border: none;
       display: block;
-      background: #ffffff;
     }
 
-    /* 手機視圖模式（桌面下呈現仿 iPhone 390px 模擬外殼） */
-    body.device-mobile-view .iframe-stage {
-      padding: 16px 0;
-    }
-
-    body.device-mobile-view .iframe-container {
-      width: 390px;
-      height: calc(100% - 24px);
-      max-height: 844px;
-      border-radius: 38px;
-      border: 10px solid var(--phone-shell-bg);
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3),
-                  0 0 0 1px rgba(255, 255, 255, 0.1);
-      overflow: hidden;
-    }
-
-    body.device-mobile-view .iframe-container::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 120px;
-      height: 18px;
-      background: var(--phone-shell-bg);
-      border-bottom-left-radius: 12px;
-      border-bottom-right-radius: 12px;
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    /* 行動裝置窄螢幕樣式 */
+    /* 手機與平板窄螢幕樣式 */
     .sidebar-overlay {
       display: none;
       position: fixed;
@@ -557,41 +521,37 @@
         width: 320px;
         margin-left: -320px;
       }
-      /* 手機上瀏覽時自動滿版，避免雙重邊框 */
-      body.device-mobile-view .iframe-container {
-        width: 100% !important;
-        height: 100% !important;
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-      }
-      body.device-mobile-view .iframe-container::before {
-        display: none !important;
-      }
-      .btn-text-hide-sm {
-        display: none;
-      }
     }
   </style>
 </head>
 <body>
 
-  <!-- 行動版背景遮罩 -->
+  <!-- 手機版背景遮罩 -->
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-  <!-- 左側導覽側邊欄（無內部收合按鈕） -->
+  <!-- 左側導覽側邊欄 -->
   <aside class="sidebar" id="sidebar">
     <div class="brand-section">
-      <div class="brand-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      <div class="brand-left">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>教學行政系統</h1>
+          <p>班級管理與學習追蹤入口</p>
+        </div>
+      </div>
+      <!-- 側欄收合按鈕 -->
+      <button class="btn-collapse-sidebar" onclick="toggleSidebar()" title="收合選單 (Ctrl+B 或 [ 鍵)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="9" y1="3" x2="9" y2="21"/>
+          <path d="m14 9-3 3 3 3"/>
         </svg>
-      </div>
-      <div class="brand-text">
-        <h1>教學行政系統</h1>
-        <p>班級管理與學習追蹤入口</p>
-      </div>
+      </button>
     </div>
 
     <!-- 網頁切換清單 -->
@@ -632,6 +592,7 @@
           </svg>
           <span>介面主題色</span>
         </div>
+        <span class="theme-header-hint">淡色系</span>
       </div>
       <div class="theme-grid">
         <button type="button" class="theme-btn active" data-theme-target="theme-green" onclick="setTheme('theme-green', this)">
@@ -673,15 +634,6 @@
       </div>
 
       <div class="topbar-actions">
-        <!-- 手機視圖 / 電腦視圖 切換按鈕 -->
-        <button class="btn-action" id="deviceToggleBtn" onclick="toggleDeviceMode()" title="切換手機檢視 / 電腦全螢幕">
-          <svg id="deviceIconMobile" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-            <line x1="12" y1="18" x2="12.01" y2="18"/>
-          </svg>
-          <span id="deviceModeText" class="btn-text-hide-sm">手機檢視</span>
-        </button>
-
         <!-- 重新載入當前 iframe -->
         <button class="btn-action" onclick="reloadFrame()" title="重新整理當前頁面">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -690,7 +642,7 @@
             <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
             <path d="M8 16H3v5"/>
           </svg>
-          <span class="btn-text-hide-sm">重新載入</span>
+          重新載入
         </button>
 
         <!-- 在新分頁開啟該頁面 -->
@@ -700,74 +652,59 @@
             <polyline points="15 3 21 3 21 9"/>
             <line x1="10" y1="14" x2="21" y2="3"/>
           </svg>
-          <span class="btn-text-hide-sm">新分頁</span>
+          新分頁開啟
         </a>
       </div>
     </header>
 
-    <!-- 舞台展示與內嵌 iframe -->
-    <div class="iframe-stage">
-      <div class="iframe-container" id="iframeContainer">
-        <iframe id="mainFrame" src="./01_absent.html" title="工作區頁面"></iframe>
-      </div>
+    <!-- 內嵌內容區 -->
+    <div class="iframe-wrapper">
+      <iframe id="mainFrame" src="./01_absent.html" title="工作區頁面"></iframe>
     </div>
   </main>
 
   <script>
-    // 1. 頁面切換控制
+    // 頁面切換控制
     function switchPage(url, title, num, elem) {
       document.getElementById('mainFrame').src = url;
       document.getElementById('currentTitle').textContent = title;
       document.getElementById('currentNum').textContent = num;
       document.getElementById('openNewTabBtn').href = url;
 
+      // 切換選單選取狀態
       const items = document.querySelectorAll('.nav-item');
       items.forEach(item => item.classList.remove('active'));
       if (elem) {
         elem.classList.add('active');
       }
 
+      // 手機版點選後自動收回選單
       if (window.innerWidth <= 860) {
         document.body.classList.remove('mobile-sidebar-open');
       }
     }
 
-    // 2. 重新整理當前 iframe
+    // 重新整理當前 iframe
     function reloadFrame() {
       const frame = document.getElementById('mainFrame');
       frame.src = frame.src;
     }
 
-    // 3. 側邊欄展開 / 收合控制（由頂部按鈕統一處理）
+    // 側邊欄展開 / 收合控制
     function toggleSidebar() {
       if (window.innerWidth <= 860) {
+        // 手機/窄螢幕模式
         document.body.classList.toggle('mobile-sidebar-open');
       } else {
+        // 桌面大螢幕模式
         const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
         localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
       }
     }
 
-    // 4. 手機模式 / 電腦模式 切換
-    function toggleDeviceMode() {
-      const isMobileView = document.body.classList.toggle('device-mobile-view');
-      const textElem = document.getElementById('deviceModeText');
-      const btnElem = document.getElementById('deviceToggleBtn');
-
-      if (isMobileView) {
-        textElem.textContent = '電腦視圖';
-        btnElem.classList.add('active-mode');
-        btnElem.title = '切換為電腦寬螢幕滿版';
-      } else {
-        textElem.textContent = '手機檢視';
-        btnElem.classList.remove('active-mode');
-        btnElem.title = '切換為手機直立比例檢視 (390px)';
-      }
-      localStorage.setItem('device-view-mode', isMobileView ? 'mobile' : 'desktop');
-    }
-
-    // 5. 鍵盤快捷鍵：Ctrl + B 或 [ 快速切換側邊欄
+    // 鍵盤快捷鍵：Ctrl + B 或 [ 快速切換側邊欄
     window.addEventListener('keydown', (e) => {
+      // 避免在輸入文字時觸發
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       if ((e.ctrlKey && e.key.toLowerCase() === 'b') || e.key === '[') {
@@ -776,20 +713,21 @@
       }
     });
 
-    // 6. 顏色主題切換與記憶
+    // 顏色主題切換與記憶
     function setTheme(themeName, btnElem) {
       document.documentElement.setAttribute('data-theme', themeName);
       localStorage.setItem('user-color-theme', themeName);
 
+      // 更新按鈕 active 樣式
       document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
       if (btnElem) {
         btnElem.classList.add('active');
       }
     }
 
-    // 7. 頁面初始化
+    // 頁面載入初始化
     window.addEventListener('DOMContentLoaded', () => {
-      // 讀取主題偏好
+      // 1. 讀取主題偏好
       const savedTheme = localStorage.getItem('user-color-theme') || 'theme-green';
       document.documentElement.setAttribute('data-theme', savedTheme);
       
@@ -799,18 +737,12 @@
         targetBtn.classList.add('active');
       }
 
-      // 讀取側邊欄收合偏好
+      // 2. 讀取側邊欄收合狀態（僅在寬螢幕上記錄）
       if (window.innerWidth > 860) {
         const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
         if (isCollapsed) {
           document.body.classList.add('sidebar-collapsed');
         }
-      }
-
-      // 讀取檢視模式（手機／電腦）
-      const savedDeviceMode = localStorage.getItem('device-view-mode');
-      if (savedDeviceMode === 'mobile') {
-        toggleDeviceMode();
       }
     });
   </script>
