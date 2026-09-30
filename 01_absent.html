@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 班級出缺勤與遲到管理系統 (精準天數計算版)</title>
+    <style>
+        :root {
+            --primary: #5A8F7B; 
+            --primary-light: #CDE0D9; 
+            --bg-color: #F4F7F6; 
+            --card-bg: #FFFFFF; 
+            --text-main: #3E4C45; 
+            --border-radius: 16px; 
+            --danger: #E63946;
+            --accent: #E07A5F;
+            --morning: #8D5B4C;
+        }
+        [data-theme="sakura"] { --bg-color: #FFF0F5; --primary: #C7758A; --primary-light: #F8D8E0; --card-bg: #FFFFFF; --text-main: #4A2333; }
+        [data-theme="ocean"] { --bg-color: #F0F8FF; --primary: #3B7097; --primary-light: #D4E6F1; --card-bg: #FFFFFF; --text-main: #1A364A; }
+        [data-theme="autumn"] { --bg-color: #FFF8E7; --primary: #D2691E; --primary-light: #F4D3B3; --card-bg: #FFFFFF; --text-main: #4A2B14; }
+        [data-theme="lavender"] { --bg-color: #F8F8FF; --primary: #6B5BBA; --primary-light: #E1DCF7; --card-bg: #FFFFFF; --text-main: #2A244D; }
+        [data-theme="dark"] { --bg-color: #1E272E; --primary: #05C46B; --primary-light: #485460; --card-bg: #2C3A47; --text-main: #D2DAE2; }
+
+        body {
+            font-family: 'Segoe UI', '微軟正黑體', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        h1 { 
+            color: var(--primary); 
+            text-align: center; 
+            font-size: 30px; 
+            margin: 10px 0 20px 0;
+            letter-spacing: 2px;
+        }
+        .container { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .tabs-nav { display: flex; gap: 10px; background: var(--primary-light); padding: 8px; border-radius: 16px; justify-content: center; flex-wrap: wrap; }
+        .tab-btn { padding: 12px 24px; border: none; background: transparent; font-size: 18px; font-weight: bold; color: var(--text-main); border-radius: 12px; cursor: pointer; transition: all 0.25s ease; }
+        .tab-btn:hover { background-color: rgba(255,255,255,0.3); }
+        .tab-btn.active { background-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: grid; gap: 20px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card-bg); padding: 25px 30px; border-radius: var(--border-radius); box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid var(--primary-light); color: var(--text-main); }
+        h2 { color: var(--primary); font-size: 22px; margin-top: 0; border-bottom: 2px dashed var(--primary-light); padding-bottom: 10px; }
+        
+        .form-group { margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        label { font-weight: bold; font-size: 18px; color: var(--primary); }
+        input, select { padding: 10px 14px; border: 2px solid var(--primary-light); border-radius: 10px; font-size: 17px; background-color: transparent; color: var(--text-main); outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        .type-btn, .period-btn, .action-btn { padding: 10px 16px; border: 2px solid var(--primary-light); border-radius: 12px; background: transparent; cursor: pointer; font-size: 17px; font-weight: bold; color: var(--text-main); transition: all 0.2s ease; }
+        .type-btn:hover, .period-btn:hover { border-color: var(--primary); }
+        .type-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
+        .period-btn.active { background-color: var(--accent); color: white; border-color: var(--accent); }
+        .type-btn.dragging { opacity: 0.5; border: 2px dashed var(--primary); }
+        
+        .reason-tag { padding: 8px 14px; border: 1px solid var(--primary-light); border-radius: 20px; background: transparent; cursor: pointer; font-size: 15px; color: var(--text-main); transition: all 0.2s; }
+        .reason-tag.active { background: var(--primary-light); border-color: var(--primary); font-weight: bold; }
+
+        .seat-item, .tag-item { position: relative; display: inline-block; }
+        .seat-btn { width: 100%; padding: 9px 8px; border: 2px solid var(--primary-light); border-radius: 10px; background: transparent; cursor: pointer; font-size: 16px; font-weight: bold; color: var(--text-main); }
+        .seat-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .seat-del-badge { position: absolute; top: -6px; right: -6px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; z-index: 5;}
+        
+        .seats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 10px; width: 100%; margin-top: 10px; padding: 14px; border-radius: 12px; border: 1px solid var(--primary-light); }
+        .seat-ctrl-btn { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--primary-light); background: transparent; color: var(--primary); cursor: pointer; font-weight: bold; }
+        .seat-ctrl-btn.active-mode { background: var(--accent); color: white; border-color: var(--accent); }
+        
+        .periods-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
+        .submit-btn { width: 100%; padding: 18px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 22px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 14px; text-align: center; border-bottom: 2px solid var(--primary-light); }
+        th { background-color: var(--primary-light); font-weight: bold; }
+        .delete-btn { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+        .edit-btn { background: #F4A261; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-right: 5px; }
+        
+        .filter-bar { padding: 15px 20px; border-radius: 12px; border: 1px solid var(--primary-light); margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; }
+        
+        .action-btn.danger { color: var(--danger); border-color: var(--danger); }
+        .action-btn.danger:hover { background-color: var(--danger); color: white; }
+
+        /* 警告視窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(5px); }
+        .modal-box { background: #fff; padding: 35px; border-radius: 20px; width: 90%; max-width: 550px; text-align: center; border: 4px solid var(--danger); }
+        .modal-title { color: var(--danger); font-size: 28px; font-weight: bold; margin-bottom: 15px; }
+        .modal-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; border: none; margin: 5px; }
+        .modal-btn.cancel { background: #E8F0ED; color: #333; }
+        .modal-btn.confirm { background: var(--danger); color: white; }
+    </style>
+</head>
+<body>
+    <div id="clearModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">🚨 嚴重警告：準備清空資料</div>
+            <div style="font-size: 19px; color: #333; margin-bottom: 25px;">
+                這是「新學年度」專用的歸零功能！<br>請問您是否已經先點擊「匯出備份」了呢？
+                <div style="background: #FFF0F0; padding: 8px; border-radius: 8px; color: var(--danger); font-weight: bold; margin: 10px 0;">按下確定後，所有紀錄將會 永久刪除</div>
+            </div>
+            <div>
+                <button class="modal-btn cancel" onclick="hideClearModal()">返回，先不要</button>
+                <button class="modal-btn confirm" onclick="confirmClearAll()">確定清空</button>
+            </div>
+        </div>
+    </div>
+
+    <h1>🌿 <span id="mainTitle">高年級</span>班級出缺勤管理系統</h1>
+
+    <div class="container">
+        <div class="card" style="padding: 12px 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label>目前年段：</label>
+                        <select id="gradeSelect">
+                            <option value="高年級">高年級 (週三半天)</option>
+                            <option value="中年級">中年級 (週三五半天)</option>
+                            <option value="低年級">低年級 (週二全天)</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label>風格主題：</label>
+                        <select id="themeSelect" onchange="changeTheme()">
+                            <option value="default">預設原綠</option>
+                            <option value="sakura">櫻花粉紅</option>
+                            <option value="ocean">深海湛藍</option>
+                            <option value="autumn">秋意濃橘</option>
+                            <option value="lavender">星空幻紫</option>
+                            <option value="dark">暗夜護眼</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="action-btn" onclick="exportData()">📥 匯出備份</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                    <button class="action-btn" onclick="document.getElementById('importFile').click()">📤 匯入備份</button>
+                    <button class="action-btn danger" onclick="showClearModal()">🧹 迎接新學年 (清空)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('recordTab')">✍️ 登記面板</button>
+            <button class="tab-btn" onclick="switchTab('personalTab')">👤 個人報表</button>
+            <button class="tab-btn" onclick="switchTab('monthTab')">🗓️ 月報表</button>
+            <button class="tab-btn" onclick="switchTab('semesterTab')">🎓 學期總表</button>
+        </div>
+
+        <div id="recordTab" class="tab-content active">
+            <div class="card">
+                <h2 id="formTitle">✍️ 快速登記</h2>
+                <div class="form-group">
+                    <label>日期</label> <input type="date" id="dateInput">
+                    <label style="margin-left: 10px;">班級</label> <input type="text" id="classInput" placeholder="例: 502班">
+                </div>
+                
+                <div class="form-group" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;">
+                        <label>點選座號 (已選 <span id="selectedSeatCount" style="color: var(--accent);">0</span> 位)</label>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button type="button" class="seat-ctrl-btn" onclick="promptAddSeat()">➕ 新增指定座號</button>
+                            <button type="button" class="seat-ctrl-btn" id="delModeBtn" onclick="toggleDeleteMode()">🛠️ 管理/刪除座號</button>
+                            <button type="button" class="seat-ctrl-btn" onclick="toggleAllSeats()">🔄 全選/清空</button>
+                        </div>
+                    </div>
+                    <div class="seats-grid" id="seatsContainer"></div>
+                </div>
+
+                <div class="form-group" id="leaveTypeContainer">
+                    <label>假別 (可長按拖曳排序)</label>
+                </div>
+                
+                <div class="form-group" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <label>原因標籤 (可多選)</label>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="seat-ctrl-btn" onclick="promptAddReason()">➕ 新增原因</button>
+                            <button type="button" class="seat-ctrl-btn" id="delReasonModeBtn" onclick="toggleReasonDeleteMode()">🛠️ 管理/刪除標籤</button>
+                        </div>
+                    </div>
+                    <div id="reasonTagsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-top: 5px;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>補充備註</label>
+                    <input type="text" id="noteInput" placeholder="給老師自由填寫備註..." style="flex-grow: 1; max-width: 500px;">
+                </div>
+
+                <div class="form-group">
+                    <label>節數</label>
+                    <button class="period-btn" id="allDayBtn">🌞 一鍵全天</button>
+                </div>
+                <div class="periods-container" id="periodsList">
+                    <button class="period-btn p-btn" data-period="早">🌅 早自修</button>
+                    <button class="period-btn p-btn" data-period="1">第 1 節</button>
+                    <button class="period-btn p-btn" data-period="2">第 2 節</button>
+                    <button class="period-btn p-btn" data-period="3">第 3 節</button>
+                    <button class="period-btn p-btn" data-period="4">第 4 節</button>
+                    <button class="period-btn p-btn" data-period="午休">🥣 午休</button>
+                    <button class="period-btn p-btn" data-period="5">第 5 節</button>
+                    <button class="period-btn p-btn" data-period="6">第 6 節</button>
+                    <button class="period-btn p-btn" data-period="7">第 7 節</button>
+                </div>
+                <button class="submit-btn" id="submitBtn" onclick="saveRecord()">🍃 送出紀錄</button>
+            </div>
+            
+            <div class="card">
+                <h2>🕒 最近明細</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr><th>日期</th> <th>座號</th> <th>類別</th> <th>原因/備註</th> <th>節數</th> <th>操作</th></tr>
+                        </thead>
+                        <tbody id="recentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="personalTab" class="tab-content">
+            <div class="card">
+                <h2>👤 學生個人缺曠報表</h2>
+                <div class="filter-bar">
+                    <label>選擇座號：</label> <select id="personalSeatSelect"></select>
+                    <label>區間：</label> <input type="date" id="personalStart"> 至 <input type="date" id="personalEnd">
+                    <button class="action-btn" onclick="renderPersonalView()" style="background:var(--primary); color:white;">查詢</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr><th>日期</th><th>類別</th><th>詳細原因/備註</th><th>影響節數</th></tr></thead>
+                        <tbody id="personalTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="monthTab" class="tab-content">
+            <div class="card">
+                <h2>🗓️ 月出缺勤總表</h2>
+                <div class="filter-bar"><label>選擇月份：</label> <input type="month" id="monthFilter" onchange="renderMonthView()"></div>
+                <table id="monthTable"><thead><tr><th>座號</th><th>事假</th><th>病假</th><th>公假</th><th>喪假</th><th>曠課</th><th>遲到(早/課)</th></tr></thead><tbody id="monthStatsTableBody"></tbody></table>
+            </div>
+        </div>
+
+        <div id="semesterTab" class="tab-content">
+            <div class="card">
+                <h2>🎓 全學期累計總表</h2>
+                <div class="filter-bar"><label>區間：</label> <input type="date" id="semStart" onchange="renderSemesterView()"> 至 <input type="date" id="semEnd" onchange="renderSemesterView()"></div>
+                <table id="semTable"><thead><tr><th>座號</th><th>事假</th><th>病假</th><th>公假</th><th>喪假</th><th>曠課</th><th>遲到(早/課)</th></tr></thead><tbody id="semStatsTableBody"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dateInput = document.getElementById('dateInput');
+        const classInput = document.getElementById('classInput');
+        const gradeSelect = document.getElementById('gradeSelect');
+        const todayStr = new Date().toISOString().split('T')[0];
+        dateInput.value = todayStr;
+        
+        document.getElementById('personalStart').value = `${new Date().getFullYear()}-08-01`;
+        document.getElementById('personalEnd').value = todayStr;
+        document.getElementById('monthFilter').value = todayStr.substring(0, 7);
+        document.getElementById('semStart').value = `${new Date().getFullYear()}-08-01`;
+        document.getElementById('semEnd').value = `${new Date().getFullYear()+1}-01-31`;
+
+        let selectedType = "事假";
+        let selectedPeriods = new Set();
+        let selectedSeats = new Set();
+        let selectedReasonTags = new Set();
+        let editingId = null; 
+        let isDeleteMode = false;
+        let isReasonDeleteMode = false;
+        
+        let customSeats = JSON.parse(localStorage.getItem('attendance_seats')) || Array.from({length: 30}, (_, i) => i + 1);
+        let records = JSON.parse(localStorage.getItem('attendance_records')) || [];
+        let leaveTypeOrder = JSON.parse(localStorage.getItem('attendance_leave_order')) || ["事假", "病假", "公假", "喪假", "曠課", "遲到"];
+
+        const defaultReasonDict = {
+            "事假": ["出去玩", "家有要事", "回診", "私人比賽", "辦理證件", "其他"],
+            "病假": ["流感", "腸病毒", "感冒", "腸胃炎", "發燒", "嘔吐", "過敏", "生理假", "頭痛", "肚子痛", "咳嗽", "確診/新冠", "受傷/骨折", "回診", "其他"],
+            "公假": ["球隊比賽", "典禮志工", "校內公差", "競賽代表", "其他"],
+            "喪假": ["喪假"],
+            "曠課": ["無故未到", "聯絡不上家長"],
+            "遲到": ["睡過頭", "塞車", "看病晚到", "家長晚接送", "其他"]
+        };
+        let reasonDict = JSON.parse(localStorage.getItem('attendance_reason_dict')) || defaultReasonDict;
+
+        classInput.value = localStorage.getItem('attendance_last_class') || "";
+        classInput.addEventListener('input', (e) => localStorage.setItem('attendance_last_class', e.target.value));
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            if (tabId === 'personalTab') updatePersonalSeatDropdown();
+            if (tabId === 'monthTab') renderMonthView();
+            if (tabId === 'semesterTab') renderSemesterView();
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('attendance_theme', theme);
+        }
+
+        // --- 判斷全天/半天邏輯 ---
+        function getMaxPeriods(dateStr, grade) {
+            if(!dateStr) return 7;
+            const day = new Date(dateStr).getDay();
+            if (grade === '低年級') return (day === 2) ? 7 : 4;
+            if (grade === '中年級') return (day === 3 || day === 5) ? 4 : 7;
+            return (day === 3) ? 4 : 7; // 高年級
+        }
+
+        function checkDateUI() {
+            const grade = gradeSelect.value;
+            const maxP = getMaxPeriods(dateInput.value, grade);
+            document.getElementById('mainTitle').innerText = grade.replace('年級','');
+            
+            for(let i=5; i<=7; i++) {
+                const btn = document.querySelector(`.p-btn[data-period="${i}"]`);
+                if (btn) btn.style.display = (maxP === 4) ? 'none' : 'inline-block';
+            }
+            const noonBtn = document.querySelector('.p-btn[data-period="午休"]');
+            if (noonBtn) noonBtn.style.display = (maxP === 4) ? 'none' : 'inline-block';
+
+            document.getElementById('allDayBtn').innerText = maxP === 4 ? '🌞 一鍵全天 (早自修+1~4節)' : '🌞 一鍵全天 (早自修+1~7節+午休)';
+            updatePeriodUI();
+        }
+
+        dateInput.addEventListener('change', checkDateUI);
+        gradeSelect.addEventListener('change', checkDateUI);
+
+        function renderLeaveTypes() {
+            const container = document.getElementById('leaveTypeContainer');
+            container.innerHTML = '<label>假別 (可長按拖曳排序)</label>';
+            
+            leaveTypeOrder.forEach((type, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'type-btn' + (selectedType === type ? ' active' : '');
+                btn.innerText = type;
+                btn.draggable = true;
+                
+                btn.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', index);
+                    setTimeout(() => btn.classList.add('dragging'), 0);
+                };
+                btn.ondragend = () => btn.classList.remove('dragging');
+                btn.ondragover = (e) => e.preventDefault();
+                btn.ondrop = (e) => {
+                    e.preventDefault();
+                    const draggedIdx = e.dataTransfer.getData('text/plain');
+                    const targetIdx = index;
+                    const draggedItem = leaveTypeOrder.splice(draggedIdx, 1)[0];
+                    leaveTypeOrder.splice(targetIdx, 0, draggedItem);
+                    localStorage.setItem('attendance_leave_order', JSON.stringify(leaveTypeOrder));
+                    renderLeaveTypes();
+                };
+
+                btn.onclick = () => {
+                    selectedType = type;
+                    selectedReasonTags.clear();
+                    isReasonDeleteMode = false;
+                    document.getElementById('delReasonModeBtn').classList.remove('active-mode');
+                    document.getElementById('delReasonModeBtn').innerText = '🛠️ 管理/刪除標籤';
+                    renderLeaveTypes();
+                    renderReasonTags();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderReasonTags() {
+            const container = document.getElementById('reasonTagsContainer');
+            container.innerHTML = '';
+            const currentReasons = reasonDict[selectedType] || [];
+            
+            currentReasons.forEach(r => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'tag-item';
+                
+                const btn = document.createElement('button');
+                btn.className = 'reason-tag' + (selectedReasonTags.has(r) ? ' active' : '');
+                btn.innerText = r;
+                btn.onclick = () => {
+                    if (isReasonDeleteMode) return;
+                    if (selectedReasonTags.has(r)) {
+                        selectedReasonTags.delete(r);
+                        btn.classList.remove('active');
+                    } else {
+                        selectedReasonTags.add(r);
+                        btn.classList.add('active');
+                    }
+                };
+                wrapper.appendChild(btn);
+
+                if (isReasonDeleteMode) {
+                    const delBadge = document.createElement('div');
+                    delBadge.className = 'seat-del-badge';
+                    delBadge.innerText = '✕';
+                    delBadge.onclick = (e) => { e.stopPropagation(); deleteReason(r); };
+                    wrapper.appendChild(delBadge);
+                }
+                container.appendChild(wrapper);
+            });
+        }
+
+        function promptAddReason() {
+            const input = prompt(`請輸入要新增在「${selectedType}」的原因標籤 (多個請用逗號隔開)：`);
+            if (!input) return;
+            const newReasons = input.split(/[,，]/).map(n => n.trim()).filter(n => n);
+            let added = false;
+            
+            if (!reasonDict[selectedType]) reasonDict[selectedType] = [];
+            newReasons.forEach(r => {
+                if (!reasonDict[selectedType].includes(r)) {
+                    reasonDict[selectedType].push(r);
+                    added = true;
+                }
+            });
+            
+            if (added) {
+                localStorage.setItem('attendance_reason_dict', JSON.stringify(reasonDict));
+                renderReasonTags();
+            }
+        }
+
+        function toggleReasonDeleteMode() {
+            isReasonDeleteMode = !isReasonDeleteMode;
+            const btn = document.getElementById('delReasonModeBtn');
+            btn.classList.toggle('active-mode', isReasonDeleteMode);
+            btn.innerText = isReasonDeleteMode ? '✅ 完成管理' : '🛠️ 管理/刪除標籤';
+            renderReasonTags();
+        }
+
+        function deleteReason(r) {
+            if (confirm(`確定要從「${selectedType}」中刪除標籤【${r}】嗎？`)) {
+                reasonDict[selectedType] = reasonDict[selectedType].filter(item => item !== r);
+                selectedReasonTags.delete(r);
+                localStorage.setItem('attendance_reason_dict', JSON.stringify(reasonDict));
+                renderReasonTags();
+            }
+        }
+
+        function renderSeatButtons() {
+            const container = document.getElementById('seatsContainer');
+            container.innerHTML = '';
+            customSeats.sort((a, b) => a - b).forEach(s => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'seat-item';
+                const btn = document.createElement('button');
+                btn.className = 'seat-btn' + (selectedSeats.has(s) ? ' active' : '');
+                btn.innerText = `${s} 號`;
+                btn.onclick = () => { selectedSeats.has(s) ? selectedSeats.delete(s) : selectedSeats.add(s); renderSeatButtons(); };
+                wrapper.appendChild(btn);
+
+                if (isDeleteMode) {
+                    const delBadge = document.createElement('div');
+                    delBadge.className = 'seat-del-badge';
+                    delBadge.innerText = '✕';
+                    delBadge.onclick = (e) => { e.stopPropagation(); deleteSpecificSeat(s); };
+                    wrapper.appendChild(delBadge);
+                }
+                container.appendChild(wrapper);
+            });
+            document.getElementById('selectedSeatCount').innerText = selectedSeats.size;
+        }
+
+        function toggleAllSeats() {
+            selectedSeats.size === customSeats.length ? selectedSeats.clear() : customSeats.forEach(s => selectedSeats.add(s));
+            renderSeatButtons();
+        }
+
+        function promptAddSeat() {
+            const input = prompt("請輸入要新增的座號號碼 (多位請用逗號隔開)：");
+            if (!input) return;
+            const nums = input.split(/[,，\s]+/).map(n => parseInt(n)).filter(n => !isNaN(n) && n > 0);
+            nums.forEach(n => { if (!customSeats.includes(n)) customSeats.push(n); });
+            localStorage.setItem('attendance_seats', JSON.stringify(customSeats));
+            renderSeatButtons();
+        }
+
+        function toggleDeleteMode() {
+            isDeleteMode = !isDeleteMode;
+            const btn = document.getElementById('delModeBtn');
+            btn.classList.toggle('active-mode', isDeleteMode);
+            btn.innerText = isDeleteMode ? '✅ 完成管理' : '🛠️ 管理/刪除座號';
+            renderSeatButtons();
+        }
+
+        function deleteSpecificSeat(s) {
+            if (customSeats.length <= 1) return alert("至少需保留 1 個座號！");
+            if (confirm(`確定要移除【${s} 號】嗎？`)) {
+                customSeats = customSeats.filter(num => num !== s);
+                selectedSeats.delete(s);
+                localStorage.setItem('attendance_seats', JSON.stringify(customSeats));
+                renderSeatButtons();
+            }
+        }
+
+        // --- 節數與儲存 ---
+        document.querySelectorAll('.p-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const p = e.target.getAttribute('data-period');
+                selectedPeriods.has(p) ? selectedPeriods.delete(p) : selectedPeriods.add(p);
+                updatePeriodUI();
+            });
+        });
+
+        document.getElementById('allDayBtn').addEventListener('click', () => {
+            const maxP = getMaxPeriods(dateInput.value, gradeSelect.value);
+            const targetSize = maxP === 4 ? 5 : 9; // 半天: 早+1~4 (5節)；全天: 早+1~7+午休 (9節)
+            
+            if (selectedPeriods.size >= targetSize) {
+                selectedPeriods.clear();
+            } else {
+                selectedPeriods.add('早');
+                for(let i=1; i<=maxP; i++) selectedPeriods.add(i.toString());
+                if (maxP > 4) selectedPeriods.add('午休');
+            }
+            updatePeriodUI();
+        });
+
+        function updatePeriodUI() { 
+            document.querySelectorAll('.p-btn').forEach(b => {
+                if (b.style.display !== 'none') {
+                    b.classList.toggle('active', selectedPeriods.has(b.getAttribute('data-period')));
+                } else {
+                    b.classList.remove('active');
+                    selectedPeriods.delete(b.getAttribute('data-period'));
+                }
+            }); 
+        }
+
+        function saveRecord() {
+            const date = dateInput.value;
+            const cls = classInput.value;
+            const currentGrade = gradeSelect.value;
+            const note = document.getElementById('noteInput').value;
+            const joinedReasons = Array.from(selectedReasonTags).join(', ');
+
+            if (selectedSeats.size === 0 || selectedPeriods.size === 0) return alert("請確認座號與節數都有點選喔！");
+            
+            // 加入午休的權重排序
+            const periodOrder = { '早': 0, '1': 1, '2': 2, '3': 3, '4': 4, '午休': 4.5, '5': 5, '6': 6, '7': 7 };
+            const sortedPeriods = Array.from(selectedPeriods).sort((a, b) => periodOrder[a] - periodOrder[b]);
+
+            if (editingId) {
+                const idx = records.findIndex(r => r.id === editingId);
+                if (idx > -1) records[idx] = { ...records[idx], date, grade: currentGrade, className: cls, type: selectedType, reason: joinedReasons, note, periods: sortedPeriods, seat: Array.from(selectedSeats)[0].toString() };
+                editingId = null;
+                document.getElementById('submitBtn').innerText = "🍃 送出紀錄";
+                document.getElementById('formTitle').innerText = "✍️ 快速登記";
+            } else {
+                Array.from(selectedSeats).forEach(seat => { 
+                    records.push({ id: Date.now()+Math.random(), date, grade: currentGrade, className: cls, seat: seat.toString(), type: selectedType, reason: joinedReasons, note, periods: sortedPeriods }); 
+                });
+            }
+
+            localStorage.setItem('attendance_records', JSON.stringify(records));
+            selectedPeriods.clear(); selectedSeats.clear(); selectedReasonTags.clear();
+            document.getElementById('noteInput').value = '';
+            updatePeriodUI(); renderSeatButtons(); renderReasonTags(); renderRecentRecords();
+        }
+
+        function deleteRecord(id) {
+            if(confirm("確定刪除此紀錄？")) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem('attendance_records', JSON.stringify(records));
+                renderRecentRecords();
+            }
+        }
+
+        function editRecord(id) {
+            const rec = records.find(r => r.id === id);
+            if(!rec) return;
+            editingId = id;
+            dateInput.value = rec.date;
+            classInput.value = rec.className || "";
+            if (rec.grade) { gradeSelect.value = rec.grade; checkDateUI(); }
+            
+            selectedType = rec.type;
+            renderLeaveTypes();
+            
+            selectedReasonTags.clear();
+            if(rec.reason) rec.reason.split(', ').forEach(r => selectedReasonTags.add(r));
+            renderReasonTags();
+            
+            document.getElementById('noteInput').value = rec.note || "";
+            selectedPeriods = new Set(rec.periods); updatePeriodUI();
+            selectedSeats = new Set([parseInt(rec.seat)]); renderSeatButtons();
+            
+            document.getElementById('submitBtn').innerText = "🔄 儲存修改";
+            document.getElementById('formTitle').innerText = "🖍️ 編輯舊紀錄";
+            window.scrollTo(0, 0);
+        }
+
+        function renderRecentRecords() {
+            const tbody = document.getElementById('recentTableBody');
+            tbody.innerHTML = records.length === 0 ? `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--primary);">尚無紀錄</td></tr>` : '';
+            [...records].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10).forEach(r => {
+                tbody.innerHTML += `<tr>
+                    <td>${r.date}</td><td><strong>${r.seat}號</strong></td>
+                    <td style="color:var(--primary); font-weight:bold;">${r.type}</td>
+                    <td>${r.reason || ''} ${r.note ? `(${r.note})` : ''}</td>
+                    <td>${r.periods.join(', ')}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editRecord(${r.id})">編輯</button>
+                        <button class="delete-btn" onclick="deleteRecord(${r.id})">刪除</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function updatePersonalSeatDropdown() {
+            const sel = document.getElementById('personalSeatSelect');
+            sel.innerHTML = '';
+            customSeats.sort((a,b)=>a-b).forEach(s => sel.innerHTML += `<option value="${s}">${s} 號</option>`);
+        }
+
+        function renderPersonalView() {
+            const seat = document.getElementById('personalSeatSelect').value;
+            const sDate = document.getElementById('personalStart').value;
+            const eDate = document.getElementById('personalEnd').value;
+            const tbody = document.getElementById('personalTableBody');
+            tbody.innerHTML = '';
+            
+            const filtered = records.filter(r => r.seat === seat && r.date >= sDate && r.date <= eDate).sort((a,b)=>new Date(a.date)-new Date(b.date));
+            if(filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">此期間無缺曠紀錄</td></tr>`;
+            
+            filtered.forEach(r => {
+                tbody.innerHTML += `<tr>
+                    <td>${r.date}</td><td style="font-weight:bold; color:var(--primary);">${r.type}</td>
+                    <td>${r.reason||'-'} ${r.note ? `[備註: ${r.note}]` : ''}</td><td>${r.periods.join(', ')}</td>
+                </tr>`;
+            });
+        }
+
+        function formatDays(val) {
+            return val > 0 ? Number(val.toFixed(1)) + ' 天' : '-';
+        }
+
+        function renderAggregatedView(targetId, filterFn) {
+            const tbody = document.getElementById(targetId);
+            tbody.innerHTML = '';
+            const filtered = records.filter(filterFn);
+            const currentGrade = gradeSelect.value;
+            let stats = {};
+            customSeats.forEach(s => stats[s] = { seat:s, 事假:0, 病假:0, 公假:0, 喪假:0, 曠課:0, 早遲:0, 課遲:0 });
+            
+            filtered.forEach(r => {
+                if(!stats[r.seat]) return;
+                if(r.type === '遲到') {
+                    r.periods.forEach(p => p==='早' ? stats[r.seat].早遲++ : stats[r.seat].課遲++);
+                } else {
+                    // 將早自修與午休納入計算，每個算 0.1 天
+                    const p_count = r.periods.length;
+                    if (p_count === 0) return;
+
+                    const recGrade = r.grade || currentGrade;
+                    const maxP = getMaxPeriods(r.date, recGrade);
+                    
+                    let dayVal = 0;
+                    if (maxP === 7 && p_count >= 9) {
+                        dayVal = 1; // 全天課累計達 9 節(含)換算為 1 天
+                    } else if (maxP === 4 && p_count >= 5) {
+                        dayVal = 1; // 半天課累計達 5 節換算為 1 天
+                    } else {
+                        dayVal = p_count * 0.1;
+                    }
+                    stats[r.seat][r.type] += dayVal;
+                }
+            });
+
+            Object.values(stats).forEach(st => {
+                if(st.事假+st.病假+st.公假+st.喪假+st.曠課+st.早遲+st.課遲 === 0) return;
+                tbody.innerHTML += `<tr>
+                    <td><strong>${st.seat}號</strong></td>
+                    <td>${formatDays(st.事假)}</td>
+                    <td>${formatDays(st.病假)}</td>
+                    <td>${formatDays(st.公假)}</td>
+                    <td>${formatDays(st.喪假)}</td>
+                    <td>${formatDays(st.曠課)}</td>
+                    <td>${st.早遲>0?st.早遲+'次':''}${st.早遲>0&&st.課遲>0?' / ':''}${st.課遲>0?st.課遲+'節':''}</td>
+                </tr>`;
+            });
+        }
+
+        function renderMonthView() { renderAggregatedView('monthStatsTableBody', r => r.date.startsWith(document.getElementById('monthFilter').value)); }
+        function renderSemesterView() { renderAggregatedView('semStatsTableBody', r => r.date >= document.getElementById('semStart').value && r.date <= document.getElementById('semEnd').value); }
+        
+        function showClearModal() { document.getElementById('clearModal').style.display = 'flex'; }
+        function hideClearModal() { document.getElementById('clearModal').style.display = 'none'; }
+        function confirmClearAll() {
+            records = [];
+            localStorage.removeItem('attendance_records');
+            renderRecentRecords();
+            hideClearModal();
+            alert("✨ 資料已全部清空，迎接新學期！");
+        }
+        function exportData() {
+            const dataStr = JSON.stringify({ seats: customSeats, records: records, leaveOrder: leaveTypeOrder, reasonDict: reasonDict });
+            const link = document.createElement('a');
+            link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            link.download = `出缺勤備份_${todayStr}.json`;
+            link.click();
+        }
+        function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if(imported.records) records = imported.records;
+                    if(imported.seats) customSeats = imported.seats;
+                    if(imported.leaveOrder) leaveTypeOrder = imported.leaveOrder;
+                    if(imported.reasonDict) reasonDict = imported.reasonDict;
+                    
+                    localStorage.setItem('attendance_records', JSON.stringify(records));
+                    localStorage.setItem('attendance_seats', JSON.stringify(customSeats));
+                    localStorage.setItem('attendance_leave_order', JSON.stringify(leaveTypeOrder));
+                    localStorage.setItem('attendance_reason_dict', JSON.stringify(reasonDict));
+                    
+                    renderSeatButtons(); renderLeaveTypes(); renderReasonTags(); renderRecentRecords();
+                    alert("✅ 匯入成功！");
+                } catch(err) { alert("檔案格式錯誤"); }
+            };
+            reader.readAsText(file);
+        }
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('attendance_theme');
+            if(savedTheme) { document.getElementById('themeSelect').value = savedTheme; changeTheme(); }
+            checkDateUI();
+            renderLeaveTypes(); renderReasonTags(); renderSeatButtons(); renderRecentRecords();
+        };
+    </script>
+</body>
+</html>
